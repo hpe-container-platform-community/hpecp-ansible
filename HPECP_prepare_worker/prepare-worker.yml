@@ -1,0 +1,37 @@
+---
+- hosts: k8s_workers
+  gather_facts: no
+  become: yes
+
+  tasks:
+
+    - name: Add Kubernetes repository
+      yum_repository:
+        name: kubernetes
+        description: Kubernetes
+        file: kubernetes
+        baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+        gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+        gpgcheck: yes
+        enabled: yes
+    
+    - name: Set SELinux permissive mode
+      selinux:
+        policy: targeted
+        state: permissive    
+        configfile: /etc/selinux/config
+
+    - name: Install Kubernetes packages
+      yum:
+        name: 
+          - kubelet 
+          - kubeadm 
+          - kubectl
+        state: latest
+        disable_excludes: kubernetes
+    
+    - name: Enable kubelet
+      service:
+        name: kubelet
+        enabled: yes
+        state: started
